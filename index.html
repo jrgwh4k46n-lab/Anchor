@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Breathe">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Breathe</title>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+    body{display:grid;place-items:center;min-height:100dvh}
+    .stage{position:relative;width:min(84vw,84vh);aspect-ratio:1;display:grid;place-items:center}
+    .halo,.ring{position:absolute;inset:0;margin:auto;border-radius:50%;transform:scale(.46);animation:breathe 12s ease-in-out infinite;will-change:transform}
+    .halo{background:radial-gradient(circle,rgba(255,242,217,.18) 0 42%,rgba(255,224,171,.1) 54%,rgba(255,219,154,.03) 68%,transparent 78%);filter:blur(10px)}
+    .ring{border:4px solid rgba(255,244,226,.96);box-shadow:0 0 10px rgba(255,238,204,.8),0 0 30px rgba(255,211,135,.5),inset 0 0 12px rgba(255,233,190,.25)}
+    .orbital{position:absolute;inset:0;transform:scale(.46);animation:breathe 12s ease-in-out infinite,orbit 12s linear infinite;will-change:transform}
+    .dot{position:absolute;top:-12px;left:50%;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:#fff8eb;box-shadow:0 0 10px rgba(255,248,235,.95),0 0 25px rgba(255,212,137,.8)}
+    .paused .halo,.paused .ring,.paused .orbital{animation-play-state:paused}
+    @keyframes breathe{0%,100%{transform:scale(.46)}33.333%{transform:scale(1)}41.666%{transform:scale(1)}91.666%{transform:scale(.46)}}
+    @keyframes orbit{from{rotate:0deg}to{rotate:360deg}}
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Breathing circle">
+    <div class="halo"></div>
+    <div class="ring"></div>
+    <div class="orbital"><div class="dot"></div></div>
+  </main>
+  <script>
+    let wakeLock=null, paused=false;
+    async function keepAwake(){
+      try{
+        if("wakeLock" in navigator && document.visibilityState==="visible"){
+          wakeLock=await navigator.wakeLock.request("screen");
+        }
+      }catch(e){}
+    }
+    document.addEventListener("pointerdown", keepAwake, {passive:true});
+    document.addEventListener("dblclick", ()=>{
+      paused=!paused;
+      document.body.classList.toggle("paused",paused);
+    });
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.visibilityState==="visible" && !paused) keepAwake();
+    });
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
+    }
+  </script>
+</body>
+</html>
